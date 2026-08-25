@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>π Digits · Text on Circle Path</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Orbitron:wght@500;700&display=swap');
+
+    :root {
+      --bg: #02020a;
+      --cyan: #00f0ff;
+      --magenta: #ff2a9a;
+      --gold: #ffd700;
+      --text: #eaf6ff;
+      --dim: #5a6a7c;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 85% 65% at 50% 42%, rgba(0, 240, 255, 0.07) 0%, transparent 55%),
+        radial-gradient(ellipse 45% 40% at 78% 78%, rgba(255, 42, 154, 0.05) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    header {
+      position: absolute;
+      top: 1.1rem;
+      left: 0; right: 0;
+      text-align: center;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      font-size: clamp(0.9rem, 2.4vw, 1.35rem);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--cyan), var(--magenta), var(--gold));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 0.2rem;
+    }
+
+    .subtitle {
+      font-size: 0.65rem;
+      color: var(--dim);
+      letter-spacing: 0.1em;
+    }
+
+    #stage-wrap {
+      position: relative;
+      width: min(94vw, 90vh);
+      height: min(94vw, 90vh);
+      max-width: 900px;
+      max-height: 900px;
+      z-index: 10;
+    }
+
+    #stage-wrap svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    #path-text {
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 18px;
+      letter-spacing: 0.08em;
+      fill: url(#digitGradient);
+      filter: drop-shadow(0 0 6px rgba(0, 240, 255, 0.55));
+    }
+
+    .guide {
+      fill: none;
+      stroke: rgba(0, 240, 255, 0.12);
+      stroke-width: 1;
+    }
+
+    .guide-inner {
+      stroke: rgba(255, 42, 154, 0.08);
+    }
+
+    #center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 20;
+      pointer-events: none;
+    }
+
+    #pi-symbol {
+      font-family: 'Orbitron', sans-serif;
+      font-size: clamp(2.6rem, 6.5vw, 3.6rem);
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--cyan), #fff 40%, var(--magenta));
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      line-height: 1;
+      filter: drop-shadow(0 0 24px rgba(0, 240, 255, 0.4));
+    }
+
+    #approx {
+      font-size: clamp(0.72rem, 1.7vw, 0.92rem);
+      margin-top: 0.5rem;
+      letter-spacing: 0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    #approx span {
+      color: var(--gold);
+      font-weight: 600;
+    }
+
+    #terms {
+      font-size: 0.65rem;
+      color: var(--dim);
+      margin-top: 0.28rem;
+      letter-spacing: 0.05em;
+    }
+
+    .controls {
+      position: absolute;
+      bottom: 3.5rem;
+      display: flex;
+      gap: 0.65rem;
+      z-index: 30;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.48rem 0.95rem;
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      background: rgba(0, 240, 255, 0.06);
+      color: var(--cyan);
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button:hover {
+      background: rgba(0, 240, 255, 0.14);
+      border-color: var(--cyan);
+      box-shadow: 0 0 14px rgba(0, 240, 255, 0.22);
+    }
+
+    button.active {
+      background: rgba(255, 42, 154, 0.14);
+      border-color: var(--magenta);
+      color: var(--magenta);
+    }
+
+    footer {
+      position: absolute;
+      bottom: 1.2rem;
+      left: 0; right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 1.8rem;
+      z-index: 30;
+      font-size: 0.62rem;
+      color: var(--dim);
+      letter-spacing: 0.06em;
+      flex-wrap: wrap;
+      padding: 0 1rem;
+    }
+
+    footer strong {
+      color: var(--cyan);
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Leibniz π Stream</h1>
+    <p class="subtitle">digits flowing as text on a circular path</p>
+  </header>
+
+  <div id="stage-wrap">
+    <svg id="svg" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="digitGradient" gradientUnits="userSpaceOnUse"
+                        x1="0" y1="0" x2="1000" y2="1000">
+          <stop offset="0%"   stop-color="#00f0ff"/>
+          <stop offset="35%"  stop-color="#7af0ff"/>
+          <stop offset="65%"  stop-color="#ff2a9a"/>
+          <stop offset="100%" stop-color="#ffd700"/>
+        </linearGradient>
+
+        <!-- perfect circle path, starting at top, going clockwise -->
+        <path id="circlePath"
+              d="M 500, 70
+                 A 430,430 0 1,1 499.9,70
+                 Z"
+              fill="none"/>
+      </defs>
+
+      <circle class="guide" cx="500" cy="500" r="430"/>
+      <circle class="guide guide-inner" cx="500" cy="500" r="370"/>
+
+      <!-- text follows the circle path exactly -->
+      <text id="path-text">
+        <textPath id="textPath" href="#circlePath" startOffset="0%">
+        </textPath>
+      </text>
+    </svg>
+
+    <div id="center">
+      <div id="pi-symbol">π</div>
+      <div id="approx">≈ <span id="pi-value">4.0000000000</span></div>
+      <div id="terms">terms: <span id="term-count">0</span></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="btn-pause">Pause</button>
+    <button id="btn-reset">Reset</button>
+    <button id="btn-speed">Speed ×1</button>
+    <button id="btn-spin">Spin On</button>
+  </div>
+
+  <footer>
+    <div>chars on path: <strong id="char-count">0</strong></div>
+    <div>4 × Σ (−1)<sup>k</sup>/(2k+1)</div>
+  </footer>
+
+  <script>
+    // Leibniz series — identical to the Rust code
+    let sum = 0.0;
+    let sign = 1.0;
+    let n = 1n;
+    let terms = 0;
+    let digitStr = '';
+    let running = true;
+    let spinning = true;
+    let speed = 1;
+    let offset = 0;
+
+    const textPath = document.getElementById('textPath');
+    const pathText = document.getElementById('path-text');
+    const piValueEl = document.getElementById('pi-value');
+    const termCountEl = document.getElementById('term-count');
+    const charCountEl = document.getElementById('char-count');
+    const btnPause = document.getElementById('btn-pause');
+    const btnReset = document.getElementById('btn-reset');
+    const btnSpeed = document.getElementById('btn-speed');
+    const btnSpin = document.getElementById('btn-spin');
+
+    // path radius 430 → circumference ≈ 2701.8 viewBox units
+    const PATH_LEN = 2 * Math.PI * 430;
+    const TARGET_CHARS = 180;   // dense fill of the circle
+
+    function step() {
+      sum += sign / Number(n);
+      const piApprox = 4.0 * sum;
+      // same as Rust format!("{:.10}", …).chars().last()
+      const s = piApprox.toFixed(10);
+      const last = s.charAt(s.length - 1);
+      digitStr += last;
+      if (digitStr.length > TARGET_CHARS) {
+        digitStr = digitStr.slice(-TARGET_CHARS);
+      }
+      terms++;
+      n += 2n;
+      sign = -sign;
+      return piApprox;
+    }
+
+    function updateText() {
+      textPath.textContent = digitStr;
+      charCountEl.textContent = digitStr.length;
+
+      // auto-size font so the string fills most of the circumference
+      if (digitStr.length > 0) {
+        // mono char width ≈ 0.62 × font-size
+        const ideal = (PATH_LEN * 0.92) / (digitStr.length * 0.62);
+        const size = Math.max(11, Math.min(28, ideal));
+        pathText.setAttribute('font-size', size);
+      }
+    }
+
+    function advanceOffset(dt) {
+      if (!spinning) return;
+      // move text along the path (percent of full length)
+      offset = (offset + 7.5 * (dt / 1000)) % 100;
+      textPath.setAttribute('startOffset', offset + '%');
+    }
+
+    let lastTs = performance.now();
+
+    function tick(ts) {
+      const dt = ts - lastTs;
+      lastTs = ts;
+
+      if (running) {
+        const steps = Math.max(1, Math.floor(speed * 5));
+        let lastPi = 0;
+        for (let i = 0; i < steps; i++) lastPi = step();
+        piValueEl.textContent = lastPi.toFixed(10);
+        termCountEl.textContent = terms.toLocaleString();
+        updateText();
+      }
+
+      advanceOffset(dt);
+      requestAnimationFrame(tick);
+    }
+
+    btnPause.addEventListener('click', () => {
+      running = !running;
+      btnPause.textContent = running ? 'Pause' : 'Resume';
+      btnPause.classList.toggle('active', !running);
+    });
+
+    btnReset.addEventListener('click', () => {
+      sum = 0.0;
+      sign = 1.0;
+      n = 1n;
+      terms = 0;
+      digitStr = '';
+      offset = 0;
+      piValueEl.textContent = '4.0000000000';
+      termCountEl.textContent = '0';
+      charCountEl.textContent = '0';
+      textPath.textContent = '';
+      textPath.setAttribute('startOffset', '0%');
+    });
+
+    const speeds = [1, 2, 5, 10, 25, 50];
+    let speedIdx = 0;
+    btnSpeed.addEventListener('click', () => {
+      speedIdx = (speedIdx + 1) % speeds.length;
+      speed = speeds[speedIdx];
+      btnSpeed.textContent = `Speed ×${speed}`;
+    });
+
+    btnSpin.addEventListener('click', () => {
+      spinning = !spinning;
+      btnSpin.textContent = spinning ? 'Spin On' : 'Spin Off';
+      btnSpin.classList.toggle('active', !spinning);
+    });
+
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
